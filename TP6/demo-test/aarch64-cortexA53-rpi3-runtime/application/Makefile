@@ -1,0 +1,236 @@
+#===============================================================
+# FOLDERS
+#===============================================================
+CWD        = $(shell pwd)
+# Base folder for include paths
+INCLUDEDIR = $(dir $(CWD))
+# All library sources are currently there
+LIBDIR     = $(INCLUDEDIR)/librpi3
+# All (generated) thread code is here
+GENERATED  = $(INCLUDEDIR)/application/gen-t1042
+# Provided nodes are here
+NODES      = $(INCLUDEDIR)/application/nodes
+
+#####################################################
+# SOURCES
+#####################################################
+
+ASMFILES = \
+	$(LIBDIR)/bcm2837.S \
+	$(LIBDIR)/semaphore.S 
+
+CFILES = \
+	$(wildcard $(LIBDIR)/*.c) \
+	$(wildcard $(GENERATED)/*.c) \
+	$(wildcard $(GENERATED)/threads/*.c) \
+	$(wildcard $(GENERATED)/wrappers/*.c) \
+	main.c \
+
+HEADERS = \
+	$(wildcard $(LIBDIR)/*.h)
+
+# Used to specify entry point function name, load
+# address, and some other parameters that should not
+# change often, but can change.
+LDCFG = $(CWD)/app-specific.ld
+
+# Application-independent ldscript
+LDSCRIPT = $(LIBDIR)/rpi64.ld
+
+#####################################################
+# OUTPUT
+#####################################################
+
+# Mandatory output
+IMGFILE = kernel8.img
+
+# Optional outputs
+LIST = kernel.list
+MAP = kernel.map
+
+
+#####################################################
+# COMPILER AND LINKER
+#####################################################
+
+ARMGNU = aarch64-none-elf
+
+CFLAGS = \
+	-I $(INCLUDEDIR) -I $(GENERATED) -I $(CWD)\
+	-march=armv8-a+simd -mtune=cortex-a53 \
+	-Wall -O3 -mstrict-align -fno-tree-loop-vectorize \
+	-fno-tree-slp-vectorize \
+	-nostdlib -nodefaultlibs -nostartfiles -ffreestanding \
+	-fno-asynchronous-unwind-tables -fomit-frame-pointer \
+
+LDFLAGS=-Wl,-gc-sections -Wl,--build-id=none -Wl,-Bdynamic
+LIBS = \
+#	/Users/dpotop/svn/SENSITIVE/ASSUME-confidential/safran/Livraison_code_compiles/full.a \
+#	/Users/dpotop/svn/SENSITIVE/ASSUME-confidential/safran/Livraison_code_compiles/lookup.a \
+
+
+#####################################################
+# COMPILER AND LINKER
+#####################################################
+
+CC = $(ARMGNU)-gcc $(CFLAGS)
+AS = $(ARMGNU)-gcc $(CFLAGS)
+
+OBJECTS = $(CFILES:.c=.o) $(ASMFILES:.S=.o) 
+
+
+# Rule to remake everything. Does not include clean.
+all: kernel.elf
+	$(ARMGNU)-objcopy kernel.elf -O binary $(IMGFILE)
+	$(ARMGNU)-objdump -d kernel.elf > $(LIST)
+	$(ARMGNU)-nm -n kernel.elf > $(MAP)
+
+# Rule to make the elf file.
+kernel.elf : $(OBJECTS) $(LDSCRIPT) $(LDCFG)
+	$(ARMGNU)-gcc $(CFLAGS) $(LDFLAGS) \
+		-Wl,-T,$(LDSCRIPT) $(OBJECTS) -o $@ $(LIBS) $(LIBS)
+
+depend :
+	makedepend -I $(INCLUDEDIR) -I $(GENERATED) -I $(CWD) $(CFILES)
+
+clean:
+	$(RM) kernel8.img
+	$(RM) $(MAP)
+	$(RM) kernel.elf
+	$(RM) $(LIST)
+	$(RM) $(OBJECTS)
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/arm-config.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/required.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/uart-mini.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/stdio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/bcm2837.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/ascii-print.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/stdio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/ascii-print.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/ascii-print.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/ascii-print.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/crc16.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/crc16.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/crc16.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/gpio.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/gpio.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/assert.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/gpio.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/bcm2837.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/gpio.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/gpio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mailbox.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mailbox.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/assert.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mailbox.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/bcm2837.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mailbox.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/mailbox.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mmu-pagetable.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mmu-pagetable.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/mmu-private.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mmu-pagetable.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/assert.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mmu-pagetable.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mmu.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mmu.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/mmu.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mmu.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/assert.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mmu.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/mmu-private.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/mmu.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/speed.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/speed.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/mailbox.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/speed.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/speed.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/stdio.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/stdio.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/string.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/stdio.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/stdio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/string.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/string.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/svc.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/svc.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/svc.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/svc.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/svc.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/vector-handlers.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/svc.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/semaphore.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/svc.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/uart-mini.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/assert.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/bcm2837.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/gpio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/mailbox.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/uart-mini.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/uart-mini.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/stdio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/vector-handlers.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/svc.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/semaphore.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/bcm2837.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/arm-config.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/variables.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/variables.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/variables.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/scheduler.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/variables.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/scheduler_data.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler.o: /usr/include/stdio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler.o: /usr/include/string.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler.o: /usr/include/stdlib.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/scheduler.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/scheduler_data.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data.o: /usr/include/stdio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data.o: /usr/include/string.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data.o: /usr/include/stdlib.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/scheduler_data.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data_types.o: /usr/include/stdio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data_types.o: /usr/include/string.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data_types.o: /usr/include/stdlib.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data_types.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads/scheduler_data_types.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data_types.o: /usr/include/assert.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data_types.o: /usr/include/features.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data_types.o: /usr/include/features-time64.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data_types.o: /usr/include/stdc-predef.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_data_types.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads/pervasives.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_types.o: /usr/include/stdio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_types.o: /usr/include/string.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_types.o: /usr/include/stdlib.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_types.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads/scheduler_types.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_types.o: /usr/include/assert.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_types.o: /usr/include/features.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_types.o: /usr/include/features-time64.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_types.o: /usr/include/stdc-predef.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_types.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads/pervasives.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/scheduler_types.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads/scheduler_data_types.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /usr/include/stdio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/variables.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/scheduler.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/scheduler_data.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads/externc.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /usr/include/assert.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /usr/include/features.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /usr/include/features-time64.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /usr/include/stdc-predef.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads/pervasives.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: api_lopht.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu0.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/semaphore.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /usr/include/stdio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/variables.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/scheduler.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/scheduler_data.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads/externc.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /usr/include/assert.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /usr/include/features.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /usr/include/features-time64.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /usr/include/stdc-predef.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads/pervasives.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: api_lopht.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/gen-t1042/threads/thread_cpu1.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/semaphore.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/nodes/nodes.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/stdio.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/nodes/nodes.o: /usr/include/stdint.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/nodes/nodes.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/svc.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/nodes/nodes.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/nodes/nodes.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/vector-handlers.h
+/home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime//application/nodes/nodes.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/semaphore.h
+main.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/uart-mini.h
+main.o: /usr/include/stdint.h
+main.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/semaphore.h
+main.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/stdio.h
+main.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/arm-config.h
+main.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/svc.h
+main.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+main.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/librpi3/vector-handlers.h
+main.o: /home/yassi/SysAv/TP6/demo-test/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads.h

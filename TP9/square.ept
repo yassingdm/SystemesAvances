@@ -1,0 +1,15 @@
+
+node square << per : int >> () returns (clk : bool)
+var c : int;
+let
+  (* Compteur modulo 2*per *)
+  c = 0 fby ((c + 1) % (2 * per));
+
+  (* True pendant les per premiers cycles, puis False *)
+  clk = c < per;
+tel
+
+node main_app () returns (clk : bool)
+let
+  clk = square << 2 >> ();
+tel

@@ -1,0 +1,9 @@
+This example is largely derived from:
+  https://github.com/LdB-ECM/Raspberry-Pi/tree/master/10_virtualmemory
+
+
+Console:
+	screen /dev/cu.usbserial 115200
+        (cf. Valvers tutorial)
+	minicom -b 115200 -o -D /dev/cu.usbserial
+- 

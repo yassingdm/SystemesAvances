@@ -1,0 +1,159 @@
+#===============================================================
+# FOLDERS
+#===============================================================
+CWD        = $(shell pwd)
+# Base folder for include paths
+INCLUDEDIR = $(dir $(CWD))
+# All library sources are currently there
+LIBDIR     = $(INCLUDEDIR)/librpi3
+# All (generated) thread code is here
+GENERATED  = $(INCLUDEDIR)/application/gen-t1042
+# Provided nodes are here
+NODES      = $(INCLUDEDIR)/application/nodes
+
+#####################################################
+# SOURCES
+#####################################################
+
+ASMFILES = \
+	$(LIBDIR)/bcm2837.S \
+	$(LIBDIR)/semaphore.S 
+
+CFILES = \
+	$(wildcard $(LIBDIR)/*.c) \
+	$(wildcard $(GENERATED)/*.c) \
+	$(wildcard $(GENERATED)/threads/*.c) \
+	$(wildcard $(GENERATED)/wrappers/*.c) \
+	$(NODES)/nodes.c \
+	main.c \
+
+HEADERS = \
+	$(wildcard $(LIBDIR)/*.h)
+
+# Used to specify entry point function name, load
+# address, and some other parameters that should not
+# change often, but can change.
+LDCFG = $(CWD)/app-specific.ld
+
+# Application-independent ldscript
+LDSCRIPT = $(LIBDIR)/rpi64.ld
+
+#####################################################
+# OUTPUT
+#####################################################
+
+# Mandatory output
+IMGFILE = kernel8.img
+
+# Optional outputs
+LIST = kernel.list
+MAP = kernel.map
+
+
+#####################################################
+# COMPILER AND LINKER
+#####################################################
+
+ARMGNU = aarch64-none-elf
+
+CFLAGS = \
+	-I $(INCLUDEDIR) -I $(GENERATED) -I $(CWD)\
+	-march=armv8-a+simd -mtune=cortex-a53 \
+	-Wall -O3 -mstrict-align -fno-tree-loop-vectorize \
+	-fno-tree-slp-vectorize \
+	-nostdlib -nodefaultlibs -nostartfiles -ffreestanding \
+	-fno-asynchronous-unwind-tables -fomit-frame-pointer \
+
+LDFLAGS=-Wl,-gc-sections -Wl,--build-id=none -Wl,-Bdynamic
+LIBS = \
+#	/Users/dpotop/svn/SENSITIVE/ASSUME-confidential/safran/Livraison_code_compiles/full.a \
+#	/Users/dpotop/svn/SENSITIVE/ASSUME-confidential/safran/Livraison_code_compiles/lookup.a \
+
+
+#####################################################
+# COMPILER AND LINKER
+#####################################################
+
+CC = $(ARMGNU)-gcc $(CFLAGS)
+AS = $(ARMGNU)-gcc $(CFLAGS)
+
+OBJECTS = $(CFILES:.c=.o) $(ASMFILES:.S=.o) 
+
+
+# Rule to remake everything. Does not include clean.
+all: kernel.elf
+	$(ARMGNU)-objcopy kernel.elf -O binary $(IMGFILE)
+	$(ARMGNU)-objdump -d kernel.elf > $(LIST)
+	$(ARMGNU)-nm -n kernel.elf > $(MAP)
+
+# Rule to make the elf file.
+kernel.elf : $(OBJECTS) $(LDSCRIPT) $(LDCFG)
+	$(ARMGNU)-gcc $(CFLAGS) $(LDFLAGS) \
+		-Wl,-T,$(LDSCRIPT) $(OBJECTS) -o $@ $(LIBS) $(LIBS)
+
+depend :
+	makedepend -I $(INCLUDEDIR) -I $(GENERATED) -I $(CWD) $(CFILES)
+
+clean:
+	$(RM) kernel8.img
+	$(RM) $(MAP)
+	$(RM) kernel.elf
+	$(RM) $(LIST)
+	$(RM) $(OBJECTS)
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/arm-config.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/required.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/uart-mini.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/stdio.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/arm-config.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/bcm2837.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/ascii-print.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/stdio.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/ascii-print.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/ascii-print.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/crc16.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/crc16.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/gpio.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/assert.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/gpio.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/bcm2837.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/gpio.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/gpio.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/mailbox.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/assert.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/mailbox.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/bcm2837.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/mailbox.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/mailbox.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/mmu-pagetable.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/mmu-private.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/mmu-pagetable.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/assert.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/mmu-pagetable.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/mmu.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/mmu.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/mmu.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/assert.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/mmu.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/mmu-private.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/mmu.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/speed.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/mailbox.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/speed.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/speed.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/stdio.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/string.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/stdio.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/stdio.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/string.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/string.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/svc.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/svc.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/svc.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/svc.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/vector-handlers.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/svc.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/semaphore.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/svc.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/uart-mini.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/assert.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/bcm2837.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/gpio.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/mailbox.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/uart-mini.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/uart-mini.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/uart-mini.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/stdio.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/vector-handlers.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/svc.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/semaphore.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/bcm2837.h
+/Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime//librpi3/vector-handlers.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/arm-config.h
+main.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/uart-mini.h
+main.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/semaphore.h
+main.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/stdio.h
+main.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/arm-config.h
+main.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/svc.h
+main.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/arm.h
+main.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/librpi3/vector-handlers.h
+main.o: /Users/dpotop/gitlab/personal/Cursuri/EPITA/2024/demo-self-contained/aarch64-cortexA53-rpi3-runtime/application/gen-t1042/threads.h

@@ -1,0 +1,14 @@
+open Externc
+
+period(1) node main () returns ()
+var
+  x,y:int ;
+  z_0,z_1 : int at z_0 ;
+let
+  (* State initialization - node states and communication vars *)
+  init<<z_0>> z_0 = 123 fby z_1 ;
+  
+  release(0) deadline(1) x = f() ;  
+  release(0) deadline(1) y = g(z_0) ;
+  release(0) deadline(1) z_1 = h(x,y) ;
+tel

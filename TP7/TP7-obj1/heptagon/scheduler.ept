@@ -1,0 +1,145 @@
+open Scheduler_data
+open Externc
+
+fun complete(tsi:task_status; te:bool; tid:int)
+ returns (o:task_status)
+let
+  o =
+    if te then
+      { status           = Waiting;
+        current_proc     = nproc;          -- obligation
+        current_deadline = tsi.current_deadline;
+        left             = 0 }
+    else
+      tsi;
+tel
+
+
+fun check_deadline(current_date:int; tsi:task_status; tid:int) returns (tso:task_status)
+var c: bool;
+let
+  c = (tsi.status = Ready) and (tsi.current_deadline = current_date);
+  () = deadline_miss_log(current_date when c, tid when c);
+  tso = if c then { tsi with .status = Waiting } else tsi;
+tel
+
+fun start_inst(current_date:int;tsi:task_status;
+ta:task_attributes) returns (tso:task_status)
+var c : bool ;
+let
+  c = (current_date-ta.first_start)%ta.period = 0 ;
+  tso = merge c
+    (true ->
+      { status = Ready;
+      current_proc     = nproc;
+      current_deadline =
+      (current_date when c) + (ta.deadline when c);
+      left = ta.capacity when c })
+    (false -> tsi whenot c)
+tel
+
+fun update_aux(sel:int; tid:int; proc_id:int; proc_acc_in:int) returns (proc_acc_out:int)
+let
+  proc_acc_out =
+    if (sel = tid) and (proc_acc_in = nproc) then
+      proc_id
+    else
+      proc_acc_in;
+tel
+
+
+fun update_selected(ts:task_status;selected:int^nproc;tid:int) returns (tso:task_status)
+var proc_id : int ;
+let
+  proc_id = foldi<<nproc>> update_aux (selected,tid^nproc,nproc);
+  tso = if proc_id = nproc then ts
+  else {
+  ({ ts with .status = Running })
+  with .current_proc = proc_id }
+tel
+
+type select_acc = { tid : int; speriod : int }
+
+type aux_type = { sel_proc : int ; sel_period : int }
+
+fun slp_aux (sa:select_acc; proc:int; acc:aux_type) returns (o:aux_type)
+let
+  o = if acc.sel_period < sa.speriod then
+    { sel_proc = proc ; sel_period = sa.speriod }
+    else acc
+tel
+
+fun select_largest_period(acc:select_acc^nproc) returns (lp:int)
+var search_result : aux_type ;
+let
+  search_result = foldi<<nproc>> slp_aux (acc,{ sel_proc = 0 ; sel_period=(acc[0]).speriod});
+  lp = search_result.sel_proc ;
+tel
+
+fun select_aux(ts:task_status; ta:task_attributes; tid:int; acc:select_acc^nproc) returns (acc_o:select_acc^nproc)
+var lp : int;
+let
+  lp = select_largest_period(acc);
+  acc_o =
+    if ts.status = Ready then
+      if ta.period < (acc[>lp<]).speriod then
+        [ acc with [lp] = { tid = tid ; speriod = ta.period } ]
+      else
+        acc
+    else
+      acc;
+tel
+
+
+fun select_tid(s:select_acc) returns (o : int)
+let
+  o = s.tid ;
+tel
+
+fun select_tasks (ts:task_status^ntasks) returns(selected:int^nproc)
+var tmp : select_acc^nproc ;
+let
+  tmp = foldi<<ntasks>> select_aux
+  (ts,tasks,{ tid = ntasks; speriod = 9999 }^nproc);
+  selected = map<<nproc>> select_tid (tmp) ;
+tel
+
+fun rate_monotonic_mc(ts:task_status^ntasks) returns (tso:task_status^ntasks)
+var selected : int^nproc;
+let
+  selected = select_tasks (ts) ;
+  tso = mapi<<ntasks>> update_selected (ts, selected^ntasks) ;
+tel
+
+fun extract_aux(s:task_status; tid:int; acc:int^nproc)
+ returns (acc_o:int^nproc)
+let
+  acc_o =
+    if s.status = Running then
+      [ acc with [s.current_proc] = tid ]
+    else
+      acc;
+tel
+
+fun extract_proc(ts:task_status^ntasks) returns (run:int^nproc)
+var base : int^nproc;
+let
+  base = (ntasks)^nproc;           (* valeur "aucune tâche" pour chaque cœur *)
+  run  = foldi<<ntasks>> extract_aux (ts, base);
+tel
+
+node scheduler(task_end:bool^ntasks) returns (task_run:int^nproc)
+var ss : scheduler_state ;
+new_date : int ;
+tmp1,tmp2,tmp3,tmp4: task_status^ntasks ;
+let
+  ss = init_sstate fby { current_date = new_date ; tasks = tmp4 };
+  new_date = ss.current_date + 1 ; (* advance time by 1 *)
+  tmp1 = mapi <<ntasks>> complete (ss.tasks,task_end) ;
+  tmp2 = mapi<<ntasks>> check_deadline (new_date^ntasks,tmp1);
+  tmp3 = map <<ntasks>> start_inst (new_date^ntasks,tmp2,tasks);
+  tmp4 = rate_monotonic_mc(tmp3) ; (* scheduling policy *)
+  task_run = extract_proc(tmp4) ; 
+tel
+
+
