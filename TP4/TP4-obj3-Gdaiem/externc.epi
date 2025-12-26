@@ -1,0 +1,4 @@
+open Scheduler_data
+
+fun deadline_miss_log(date:int;task_id:int) returns ()
+fun print_scheduler_state(s:scheduler_state) returns ()

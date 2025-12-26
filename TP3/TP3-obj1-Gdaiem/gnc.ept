@@ -1,0 +1,70 @@
+open Print
+
+node fast(x:int) returns (y:int)
+var idx:int;
+let
+  idx = 0 fby (idx + 1);
+  y = 2 * x + idx;
+  () = print_fast(idx, x, y);
+tel
+
+node gnc(y:int) returns (x:int)
+var idx:int;
+let
+  idx = 0 fby (idx + 1);
+  x = y - idx;
+  () = print_gnc(idx, y, x);
+tel
+
+node thermal() returns ()
+var idx:int;
+let
+  idx = 0 fby (idx + 1);
+  () = print_thermal(idx);
+tel
+
+
+node condact_fast<<y_init:int>>(c:bool; x:int) returns (y:int)
+let
+  y = merge c
+        (true  -> fast(x when c))
+        (false -> (y_init fby y) whenot c);
+tel
+
+node condact_gnc<<x_init:int>>(c:bool; y:int) returns (x:int)
+let
+  x = merge c
+        (true  -> gnc(y when c))
+        (false -> (x_init fby x) whenot c);
+tel
+
+node thermal_wrap(temp1:int) returns (temp2:int)
+let
+  temp2 = temp1;
+  () = thermal();
+tel
+
+node condact_thermal(c:bool; temp1:int) returns ()
+var temp2:int;
+let
+  temp2 = merge c
+            (true  -> thermal_wrap(temp1 when c))
+            (false -> (0 fby temp2) whenot c);
+tel
+
+
+node main() returns ()
+var
+  mif_cnt:int;
+  clk_f, clk_gnc, clk_thermal:bool;
+  x, y:int;
+let
+  mif_cnt     = 0 fby ((mif_cnt + 1) % 10);
+  clk_f       = true;
+  clk_thermal = (mif_cnt = 0);
+  clk_gnc     = (mif_cnt = 9);
+
+  y = condact_fast<<31>>(clk_f, 99 fby x);
+  () = condact_thermal(clk_thermal, 0);
+  x = condact_gnc<<99>>(clk_gnc, y);
+tel

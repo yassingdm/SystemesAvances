@@ -1,0 +1,23 @@
+open Extern
+
+const addr_hs:int = 0x2000
+
+node hs_handler_merge(hs: bool) returns (id: int)
+var x, y : int; id_hs, id_ls : int;
+let
+  y     = 15 fby x ;
+  id_hs = g()       ;
+  id_ls = f1(y)     ;
+  x     = f2(id_ls) ;
+  id    = merge hs (true -> id_hs) (false -> id_ls);
+tel
+
+node main () returns ()
+var
+  hs: bool ;
+  id : int ;
+let
+  hs = read_bool(addr_hs) ;
+  id = hs_handler_merge(hs) ;
+  () = act(id) ;
+tel

@@ -1,0 +1,27 @@
+type task_attributes =
+  { period : int ;
+  capacity : int ;
+  deadline : int ;
+  first_start : int }
+  
+const ntasks : int = 2
+
+const tasks : task_attributes^ntasks =
+  [{ period=5; capacity=2; deadline=5; first_start=0 },
+  { period=7; capacity=2; deadline=7; first_start=3 }]
+
+type task_state = Running | Ready | Waiting 
+
+type task_status =
+  { status : task_state ;
+  current_deadline : int ;
+  left : int }
+  
+type scheduler_state =
+  { current_date : int ;
+  tasks : task_status^ntasks }
+  
+const init_sstate : scheduler_state =
+  { current_date = -1 ;
+  tasks =
+  {status=Waiting;current_deadline=0;left=0}^2 }
